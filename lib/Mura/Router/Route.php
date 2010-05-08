@@ -116,13 +116,15 @@ class Mura_Router_Route {
      * retorna os valores da rota
      * Caso a rota nao seja valida,
      *
-     * @return array|false
+     * @return array
+     * @throws Mura_Router_Route_Exception
      */
     public function getParams() {
         if (count($this->_parameters)) {
             return $this->_parameters;
         }
-        return false;
+        require_once 'Mura/Router/Route/Exception.php';
+        throw new Mura_Router_Route_Exception('Route does not match request.');
     }
 
     /**

@@ -98,6 +98,7 @@ abstract class Mura_Router_Abstract
 	public function addRoute($routeName, Mura_Router_Route $route)
 	{
 		if (isset($this->_routes[$routeName])) {
+            require_once 'Mura/Router/Exception.php';
 			throw new Mura_Router_Exception('A route with name "' . $routeName . '" was already taken');
 		}
 		$this->_routes[$routeName] = $route;
