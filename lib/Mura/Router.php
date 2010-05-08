@@ -1,4 +1,8 @@
 <?php
+
+require_once 'Mura/Router/Abstract.php';
+
+
 /**
  * @author marcelo (marcelo.jacobus@gmail.com)
  *
@@ -45,5 +49,16 @@
 class Mura_Router extends Mura_Router_Abstract
 {
 
-	
+	/**
+	 * Get the instance
+	 * @return Mura_Router_Abstract
+	 */
+	public static function getInstance()
+	{
+		if (self::$_instance == null) {
+			self::$_instance = new self();
+		}
+
+		return self::$_instance;
+	}
 }

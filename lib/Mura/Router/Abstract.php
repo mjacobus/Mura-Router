@@ -1,4 +1,7 @@
 <?php
+
+require_once 'Mura/Router/Route.php';
+
 /**
  *
  * Mura_Router_Abstract is a collection that manages its routes and verifies
@@ -72,19 +75,6 @@ abstract class Mura_Router_Abstract
 	}
 
 	/**
-	 * Get the instance
-	 * @return Mura_Router_Abstract
-	 */
-	public static function getInstance()
-	{
-		if (self::$_instance == null) {
-			self::$_instance = new self();
-		}
-
-		return self::$_instance;
-	}
-
-	/**
 	 * Set base url
 	 * @param string $base the application base uri
 	 * @return Mura_Router_Abstract
@@ -105,7 +95,7 @@ abstract class Mura_Router_Abstract
 	 * @return Mura_Router_Abstract
      * @throws 
 	 */
-	public function setRoute($routeName, Mura_Router_Route $route)
+	public function addRoute($routeName, Mura_Router_Route $route)
 	{
 		if (isset($this->_routes[$routeName])) {
 			throw new Mura_Router_Exception('A route with name "' . $routeName . '" was already taken');
