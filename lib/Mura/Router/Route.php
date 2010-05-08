@@ -82,6 +82,12 @@ class Mura_Router_Route {
     protected $_allowExtraParameters = false;
 
     /**
+     * whether or not is allowed parameter overriding
+     * @var bool
+     */
+    protected $_allowParameterOverriding;
+
+    /**
      *
      * Uma rota recebe como o primeiro parametro o padrao da url
      * Exemplo /clientes/:nome-cliente/*
@@ -90,7 +96,7 @@ class Mura_Router_Route {
      * @param array $defaultValues
      * @param array $requirements
      */
-    public function __construct($urlPattern, array $defaultValues = array(), array $requirements = array()) {
+    public function __construct($urlPattern, array $defaultValues = array(), array $requirements = array(),$allowParameterOverriding = false) {
         $this->_urlPattern = $urlPattern;
 
         $this->_defaultValues = $defaultValues;
@@ -98,6 +104,8 @@ class Mura_Router_Route {
         $this->_requirements =  $requirements;
 
         $this->_router = Mura_Router::getInstance();
+
+        $this->_allowParameterOverriding = $allowParameterOverriding;
 
         $this->_checkRoute();
 
@@ -113,8 +121,31 @@ class Mura_Router_Route {
     }
 
     /**
-     * retorna os valores da rota
-     * Caso a rota nao seja valida,
+     * Sets a parameter
+     * @param string $name
+     * @param string $value
+     * @return Mura_Router_Route_Exception
+     */
+    function setParam($name,  $value) {
+       $this->_parameters[$name] = $value;
+       return $this;
+    }
+
+    /**
+     * Sets a parameters
+     * @param array $params key being name and value, value.
+     * @return Mura_Router_Route_Exception
+     */
+    function setParams($params) {
+       foreach($params as $name => $value){
+           $this->setParam($name, $value);
+       }
+       return $this;
+    }
+
+    /**
+     * Return route parameters gotten from the request.
+     * Throws exception if route is not a match.
      *
      * @return array
      * @throws Mura_Router_Route_Exception
@@ -135,8 +166,11 @@ class Mura_Router_Route {
      * @return string
      */
     public function getParam($name, $default = false) {
-        if (count($this->_parameters) && array_key_exists($name, $this->_parameters)) {
-            return $this->_parameters[$name];
+        if (isset($this->_parameters[$name]) && array_key_exists($name, $this->_parameters)) {
+            $value =  $this->_parameters[$name];
+            if ($value && $value != '') {
+                return $value;
+            }
         }
         return $default;
     }
@@ -176,7 +210,7 @@ class Mura_Router_Route {
 
         foreach($this->_parts as $index => $part) {
             // checks the variable parts
-            if ($part{0} == ':') {
+            if (@$part{0} == ':') {
                 $variable = substr($part, 1);
                 $this->_variables[] = $variable;
                 $value = $this->_requestParts[$index];
@@ -253,15 +287,15 @@ class Mura_Router_Route {
 
         //If not set at the request, adds default values.
         foreach($this->_defaultValues as $name => $value) {
-            if (!isset($this->_parameters[$name])) {
-                $this->_parameters[$name] = $value;
+            if ($this->canOverride($name)) {
+                $this->setParam($name, $value);
             }
         }
 
         // Adds query string variables. Does not override.
         if (isset($_GET)) {
             foreach($_GET as $name => $value) {
-                if (!isset($this->_parameters[$name])) {
+                if ($this->canOverride($name)) {
                     $this->_parameters[$name] = $value;
                 }
             }
@@ -270,7 +304,7 @@ class Mura_Router_Route {
         // Adds $_POST variables. Does not override.
         if (isset($_POST)) {
             foreach($_POST as $name => $value) {
-                if (!isset($this->_parameters[$name])) {
+                 if ($this->canOverride($name)) {
                     $this->_parameters[$name] = $value;
                 }
             }
@@ -292,6 +326,19 @@ class Mura_Router_Route {
             }
         }
         return true;
+    }
+
+    /**
+     * Checks wheter a parameter can have its value changed
+     * @param string $name parameter name
+     * @return bool
+     */
+    public function canOverride($name)
+    {
+        if ((!isset($this->_parameters[$name]))  || ($this->_parameters[$name] == '') || ($this->_allowParameterOverriding)) {
+            return true;
+        }
+        return false;
     }
 
 }
