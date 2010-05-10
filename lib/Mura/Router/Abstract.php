@@ -69,7 +69,17 @@ abstract class Mura_Router_Abstract
 	 */
 	protected $_baseUrl;
 
+    /**
+     * @var string
+     */
+    protected $_requestUri;
 
+    /**
+     * constructor
+     */
+    public function  __construct()
+    {
+    }
 	public function  __construct()
 	{
 	}
@@ -135,5 +145,29 @@ abstract class Mura_Router_Abstract
 	{
 		return $this->_baseUrl;
 	}
+
+    /**
+     * Manually sets a request uri. Usefull for testing
+     *
+     * @param string $uri
+     * @return Mura_Router_Abstract
+     */
+    public function setRequestUri($uri)
+    {
+        $this->_requestUri = $uri;
+        return $this;
+    }
+
+    /**
+     * Gets request Uri
+     * @return string
+     */
+    public function getRequestUri()
+    {
+        if (null == $this->_requestUri) {
+            $this->_requestUri = $_SERVER['REQUEST_URI'] ;
+        }
+        return $this->_requestUri;
+    }
 
 }
