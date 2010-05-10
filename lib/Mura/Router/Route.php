@@ -186,7 +186,7 @@ class Mura_Router_Route {
         $this->_parts = explode('/', $urlPattern);
         $coutParts = count($this->_parts);
 
-        $request = explode('?',$_SERVER['REQUEST_URI']);
+        $request = explode('?',$this->_router->getRequestUri());
         $request = $request[0];
 
         $baseUrl = $this->getBaseUrl();
