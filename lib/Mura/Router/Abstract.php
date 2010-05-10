@@ -80,9 +80,7 @@ abstract class Mura_Router_Abstract
     public function  __construct()
     {
     }
-	public function  __construct()
-	{
-	}
+	
 
 	/**
 	 * Set base url
