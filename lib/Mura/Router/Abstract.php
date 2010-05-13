@@ -46,16 +46,17 @@ require_once 'Mura/Router/Route.php';
  */
 abstract class Mura_Router_Abstract
 {
-	/**
-	 * Mura_Router_Abstract
-	 */
-	protected static $_instance = null;
 
-	/**
-	 * Route Collection
-	 * @var array Colecao de Mura_Router_Route
-	 */
-	protected $_routes = array();
+    /**
+     * Mura_Router_Abstract
+     */
+    protected static $_instance = null;
+
+    /**
+     * Route Collection
+     * @var array Colecao de Mura_Router_Route
+     */
+    protected $_routes = array();
 
     /**
      * Once the matching route is found, it is set to this property
@@ -63,11 +64,11 @@ abstract class Mura_Router_Abstract
      */
     protected $_route = null;
 
-	/**
-	 * Url base da site
-	 * @var string
-	 */
-	protected $_baseUrl;
+    /**
+     * Url base da site
+     * @var string
+     */
+    protected $_baseUrl;
 
     /**
      * @var string
@@ -80,69 +81,71 @@ abstract class Mura_Router_Abstract
     public function  __construct()
     {
     }
-	
 
-	/**
-	 * Set base url
-	 * @param string $base the application base uri
-	 * @return Mura_Router_Abstract
-	 */
-	public function setBaseUrl($base)
-	{
-		$this->_baseUrl = $base;
-		return $this;
-	}
 
-	/**
-	 * Adds a Route.
+    /**
+     * Set base url
+     * @param string $base the application base uri
+     * @return Mura_Router_Abstract
+     */
+    public function setBaseUrl($base)
+    {
+        $this->_baseUrl = $base;
+        return $this;
+    }
+
+    /**
+     * Adds a Route.
      * Each route must have a unique name. If the given name exists, an
      * Exception is throwwn.
      *
-	 * @param string $routeName
-	 * @param Mura_Router_Route $route
-	 * @return Mura_Router_Abstract
-     * @throws 
-	 */
-	public function addRoute($routeName, Mura_Router_Route $route)
-	{
-		if (isset($this->_routes[$routeName])) {
+     * @param string $routeName
+     * @param Mura_Router_Route $route
+     * @return Mura_Router_Abstract
+     * @throws
+     */
+    public function addRoute($routeName, Mura_Router_Route $route)
+    {
+        if (isset($this->_routes[$routeName])) {
             require_once 'Mura/Router/Exception.php';
-			throw new Mura_Router_Exception('A route with name "' . $routeName . '" was already taken');
-		}
-		$this->_routes[$routeName] = $route;
-		return $this;
-	}
+            throw new Mura_Router_Exception('A route with name "' . $routeName . '" was already taken');
+        }
+        $this->_routes[$routeName] = $route;
+        return $this;
+    }
 
-	/**
-	 * Get the matching route.
+    /**
+     * Get the matching route.
      * If none is found, throws a Mura_Router_Route_Exception
      *
-	 * @return Mura_Router_Route
+     * @return Mura_Router_Route
      * @throws Mura_Router_Route_Exception
-	 */
-	public function getRoute()
-	{
+     */
+    public function getRoute()
+    {
         if ($this->_route == null) {
             foreach($this->_routes as $route) {
                 try {
                     $params = $route->getParams();
                     $this->_route = $route;
                     return $this->_route;
-                } catch (Mura_Router_Route_Exception $e) {}
+                } catch (Mura_Router_Route_Exception $e) {
+
+                }
             }
             throw new Mura_Router_Exception('No route matches given url.');
         }
         return $this->_route;
-	}
+    }
 
-	/**
-	 * Get the application base url
-	 * @return string
-	 */
-	public function getBaseUrl()
-	{
-		return $this->_baseUrl;
-	}
+    /**
+     * Get the application base url
+     * @return string
+     */
+    public function getBaseUrl()
+    {
+        return $this->_baseUrl;
+    }
 
     /**
      * Manually sets a request uri. Usefull for testing
