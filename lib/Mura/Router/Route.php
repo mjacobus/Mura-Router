@@ -218,7 +218,7 @@ class Mura_Router_Route {
                 if ($this->valid($variable,$value)) {
                     //TODO: $this->_defaultValues[$index] was set as $this->_defaultValues[$name].
                     //I changed, so it might cause some indesirable behavior.
-                    $this->_parameters[$variable] = (strlen($value)) ? $value : $this->_defaultValues[$index];
+                    $this->_parameters[$variable] = (strlen($value)) ? $value : $this->_defaultValues[$variable];
                 } else {
                     return $this->_setInvalid();
                 }
