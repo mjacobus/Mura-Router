@@ -335,10 +335,11 @@ class Mura_Router_Route {
      */
     public function canOverride($name)
     {
-        if ((!isset($this->_parameters[$name]))  || ($this->_parameters[$name] == '') || ($this->_allowParameterOverriding)) {
-            return true;
-        }
-        return false;
+        $firstChar = $name{0};
+        if (($firstChar == '_') && ((isset($this->_parameters[$name]))  && ($this->_parameters[$name] !== ''))) {
+            return false;
+        } 
+        return true;
     }
 
 }
