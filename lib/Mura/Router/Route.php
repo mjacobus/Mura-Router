@@ -234,7 +234,7 @@ class Mura_Router_Route
 
     /**
      *
-     * @return Mura_Router_Route
+     * @throws Mura_Router_Route_Exception
      */
     protected function _setInvalid()
     {
