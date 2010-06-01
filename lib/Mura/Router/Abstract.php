@@ -126,12 +126,10 @@ abstract class Mura_Router_Abstract
         if ($this->_route == null) {
             foreach($this->_routes as $route) {
                 try {
-                    $params = $route->getParams();
+                    $route->validate();
                     $this->_route = $route;
                     return $this->_route;
-                } catch (Mura_Router_Route_Exception $e) {
-
-                }
+                } catch (Mura_Router_Route_Exception $e) {}
             }
             throw new Mura_Router_Exception('No route matches given url.');
         }

@@ -18,7 +18,8 @@
  *
  * @author Marcelo Guilherme Jacobus Jr (marcelo.jacobus@gmail.com)
  */
-class Mura_Router_Route {
+class Mura_Router_Route
+{
 
     /**
      * The array key is the parameter name and the value
@@ -31,7 +32,7 @@ class Mura_Router_Route {
      * Gets the url parts
      * @var array
      */
-    protected $_parts = array();
+    protected $_expectedParts = array();
 
 
     /**
@@ -55,7 +56,7 @@ class Mura_Router_Route {
      * Default values added to the route.
      * @var array
      */
-    protected $_defaultValues = array();
+    protected $_predefinedValues = array();
 
     /**
      * If the route is valid, it stores the parameters gotten from the url.
@@ -82,33 +83,23 @@ class Mura_Router_Route {
     protected $_allowExtraParameters = false;
 
     /**
-     * whether or not is allowed parameter overriding
-     * @var bool
-     */
-    protected $_allowParameterOverriding;
-
-    /**
      *
      * Uma rota recebe como o primeiro parametro o padrao da url
      * Exemplo /clientes/:nome-cliente/*
      *
      * @param string $url a url com variaveis separadas por ':'
-     * @param array $defaultValues
+     * @param array $predefinedValues
      * @param array $requirements
      */
-    public function __construct($urlPattern, array $defaultValues = array(), array $requirements = array(),$allowParameterOverriding = false) {
+    public function __construct($urlPattern,  $predefinedValues = array(), array $requirements = array())
+    {
         $this->_urlPattern = $urlPattern;
 
-        $this->_defaultValues = $defaultValues;
+        $this->_predefinedValues = $predefinedValues;
 
         $this->_requirements =  $requirements;
 
         $this->_router = Mura_Router::getInstance();
-
-        $this->_allowParameterOverriding = $allowParameterOverriding;
-
-        $this->_checkRoute();
-
     }
 
     /**
@@ -126,9 +117,10 @@ class Mura_Router_Route {
      * @param string $value
      * @return Mura_Router_Route_Exception
      */
-    function setParam($name,  $value) {
-       $this->_parameters[$name] = $value;
-       return $this;
+    function setParam($name,  $value)
+    {
+        $this->_parameters[$name] = $value;
+        return $this;
     }
 
     /**
@@ -136,11 +128,12 @@ class Mura_Router_Route {
      * @param array $params key being name and value, value.
      * @return Mura_Router_Route_Exception
      */
-    function setParams($params) {
-       foreach($params as $name => $value){
-           $this->setParam($name, $value);
-       }
-       return $this;
+    function setParams($params)
+    {
+        foreach($params as $name => $value){
+            $this->setParam($name, $value);
+        }
+        return $this;
     }
 
     /**
@@ -150,12 +143,9 @@ class Mura_Router_Route {
      * @return array
      * @throws Mura_Router_Route_Exception
      */
-    public function getParams() {
-        if (count($this->_parameters)) {
-            return $this->_parameters;
-        }
-        require_once 'Mura/Router/Route/Exception.php';
-        throw new Mura_Router_Route_Exception('Route does not match request.');
+    public function getParams()
+    {
+        return $this->_parameters;
     }
 
     /**
@@ -165,7 +155,8 @@ class Mura_Router_Route {
      * @param mixed $valor default value to be returned. false if none
      * @return string
      */
-    public function getParam($name, $default = false) {
+    public function getParam($name, $default = false)
+    {
         if (isset($this->_parameters[$name]) && array_key_exists($name, $this->_parameters)) {
             $value =  $this->_parameters[$name];
             if ($value && $value != '') {
@@ -179,12 +170,14 @@ class Mura_Router_Route {
      * Checks the request and if it matches this route, adds its parameters to
      * the parameter collection.
      * @return Mura_Router_Route
+     * @throws Mura_Router_Route_Exception when route is not valid
      */
-    protected function _checkRoute() {
+    public function validate()
+    {
         //remove leading slashes from the url pattern
         $urlPattern = trim($this->_urlPattern,'/');
-        $this->_parts = explode('/', $urlPattern);
-        $coutParts = count($this->_parts);
+        $this->_expectedParts = explode('/', $urlPattern);
+        $numberOfExpectedParts = count($this->_expectedParts);
 
         $request = explode('?',$this->_router->getRequestUri());
         $request = $request[0];
@@ -196,37 +189,38 @@ class Mura_Router_Route {
         }
 
         $this->_requestParts = explode('/',trim($request,'/'));
-        $countRequest = count($this->_requestParts);
+        $numberOfRequestParts = count($this->_requestParts);
 
         // verifies if extra parameters should be allowed
-        if (in_array('*', $this->_parts)) {
+        if (in_array('*', $this->_expectedParts)) {
             $this->_allowExtraParameters = true;
         }
 
         //limits parameters
-        if ((false == $this->_allowExtraParameters) && ($countRequest > $coutParts)) {
-            return $this->_setInvalid();
+        if ((false == $this->_allowExtraParameters) && ($numberOfRequestParts > $numberOfExpectedParts)) {
+            $this->_setInvalid();
         }
 
-        foreach($this->_parts as $index => $part) {
+        //set default values
+        $this->_parameters = $this->_predefinedValues;
+
+        foreach($this->_expectedParts as $index => $part) {
             // checks the variable parts
             if (@$part{0} == ':') {
                 $variable = substr($part, 1);
                 $this->_variables[] = $variable;
                 $value = $this->_requestParts[$index];
 
-                if ($this->valid($variable,$value)) {
-                    //TODO: $this->_defaultValues[$index] was set as $this->_defaultValues[$name].
-                    //I changed, so it might cause some indesirable behavior.
-                    $this->_parameters[$variable] = (strlen($value)) ? $value : $this->_defaultValues[$variable];
+                if ($this->valid($variable,$value) && (strlen($value) > 0)) {
+                    $this->_parameters[$variable] = $value;
                 } else {
-                    return $this->_setInvalid();
+                    $this->_setInvalid();
                 }
             }
             //Checks the non variable parts
-            else {
+            else if (@$part{0} != '_') {
                 if (($part != '*') && ($part != $this->_requestParts[$index])) {
-                    return $this->_setInvalid();
+                    $this->_setInvalid();
                 }
             }
 
@@ -235,17 +229,17 @@ class Mura_Router_Route {
         //add non predifined parameters
         $this->_addExtraParameters();
 
-        return $this;
+        return true;
     }
 
     /**
      *
      * @return Mura_Router_Route
      */
-    protected function _setInvalid() {
-        //invalids route
-        $this->_parameters = array();
-        return $this;
+    protected function _setInvalid()
+    {
+        require_once 'Mura/Router/Route/Exception.php';
+        throw new Mura_Router_Route_Exception('Invalid Route');
     }
 
 
@@ -258,7 +252,7 @@ class Mura_Router_Route {
      */
     protected function _addExtraParameters()
     {
-        $firstExtraParameterIndex = count($this->_parts);
+        $firstExtraParameterIndex = count($this->_expectedParts);
         // if allowd extraparameters, it means the first extra parameter
         // is actually the second index(*)
         if ($this->_allowExtraParameters) {
@@ -271,7 +265,7 @@ class Mura_Router_Route {
         /*
          * Extra params are built as key/value on the url, so it must go throw
          * 2 by 2
-         */
+        */
         for($i = 0; $i < $size; $i+=2 ) {
             if (array_key_exists($i, $extraParams)) {
                 $name = $extraParams[$i];
@@ -286,7 +280,7 @@ class Mura_Router_Route {
         }
 
         //If not set at the request, adds default values.
-        foreach($this->_defaultValues as $name => $value) {
+        foreach($this->_predefinedValues as $name => $value) {
             if ($this->canOverride($name)) {
                 $this->setParam($name, $value);
             }
@@ -304,7 +298,7 @@ class Mura_Router_Route {
         // Adds $_POST variables. Does not override.
         if (isset($_POST)) {
             foreach($_POST as $name => $value) {
-                 if ($this->canOverride($name)) {
+                if ($this->canOverride($name)) {
                     $this->_parameters[$name] = $value;
                 }
             }
@@ -318,10 +312,11 @@ class Mura_Router_Route {
      * @param string $value
      * @return bool
      */
-    public function valid($name, $value) {
+    public function valid($name, $value)
+    {
         if (array_key_exists($name, $this->_requirements)) {
-            $padrao = '/^' . $this->_requirements[$name] . '$/';
-            if (!preg_match($padrao, $value)) {
+            $pattern = '/^' . $this->_requirements[$name] . '$/';
+            if (!preg_match($pattern, $value)) {
                 return false;
             }
         }
@@ -338,7 +333,7 @@ class Mura_Router_Route {
         $firstChar = $name{0};
         if (($firstChar == '_') && ((isset($this->_parameters[$name]))  && ($this->_parameters[$name] !== ''))) {
             return false;
-        } 
+        }
         return true;
     }
 
