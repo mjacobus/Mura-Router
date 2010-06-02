@@ -117,9 +117,9 @@ class Mura_Router_Route
      * @param string $value
      * @return Mura_Router_Route_Exception
      */
-    function setParam($name,  $value)
+    public function setParam($name,  $value)
     {
-        $this->_parameters[$name] = $value;
+        $this->_parameters[$name] = urldecode($value);
         return $this;
     }
 
@@ -212,7 +212,7 @@ class Mura_Router_Route
                 $value = $this->_requestParts[$index];
 
                 if ($this->valid($variable,$value) && (strlen($value) > 0)) {
-                    $this->_parameters[$variable] = $value;
+                    $this->setParam($variable,$value);
                 } else {
                     $this->_setInvalid();
                 }
@@ -234,7 +234,7 @@ class Mura_Router_Route
 
     /**
      *
-     * @throws Mura_Router_Route_Exception
+     * @return Mura_Router_Route
      */
     protected function _setInvalid()
     {
@@ -275,7 +275,7 @@ class Mura_Router_Route
                 } else {
                     $value = false;
                 }
-                $this->_parameters[$name] = $value;
+                $this->setParam($name,$value);
             }
         }
 
@@ -290,7 +290,7 @@ class Mura_Router_Route
         if (isset($_GET)) {
             foreach($_GET as $name => $value) {
                 if ($this->canOverride($name)) {
-                    $this->_parameters[$name] = $value;
+                    $this->setParam($name,$value);
                 }
             }
         }
@@ -299,7 +299,7 @@ class Mura_Router_Route
         if (isset($_POST)) {
             foreach($_POST as $name => $value) {
                 if ($this->canOverride($name)) {
-                    $this->_parameters[$name] = $value;
+                    $this->setParam($name,$value);
                 }
             }
         }
