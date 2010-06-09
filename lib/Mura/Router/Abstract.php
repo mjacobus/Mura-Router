@@ -68,7 +68,7 @@ abstract class Mura_Router_Abstract
      * Url base da site
      * @var string
      */
-    protected $_baseUrl;
+    protected $_baseUrl = '/';
 
     /**
      * @var string
@@ -90,6 +90,9 @@ abstract class Mura_Router_Abstract
      */
     public function setBaseUrl($base)
     {
+        if ($base != '/'){
+            $base = '/' . trim($base,'/') . '/';
+        }
         $this->_baseUrl = $base;
         return $this;
     }
@@ -140,9 +143,9 @@ abstract class Mura_Router_Abstract
      * Get the application base url
      * @return string
      */
-    public function getBaseUrl()
+    public function getBaseUrl($append = '')
     {
-        return $this->_baseUrl;
+        return $this->_baseUrl . trim($append,'/');
     }
 
     /**
@@ -167,6 +170,32 @@ abstract class Mura_Router_Abstract
             $this->_requestUri = $_SERVER['REQUEST_URI'] ;
         }
         return $this->_requestUri;
+    }
+
+    /**
+     * Gets a route by name
+     * @param string $name
+     * @return Mura_Router_Route
+     * @throws Mura_Router_Exception when route is not found
+     */
+    public function getRouteByName($name)
+    {
+        if (!array_key_exists($name, $this->_routes)) {
+            require_once 'Mura/Router/Exception.php';
+            throw new Exception('Route with name "' . $name . '" was not found');
+        }
+        return $this->_routes[$name];
+    }
+
+    /**
+     * Builds and return a url that matches the pattern imposed by $routeName
+     * @param string $routeName
+     * @param array $params params to append to the url
+     */
+    public function getUrlFor($routeName,array $params = array())
+    {
+        $route = $this->getRouteByName($routeName);
+        return $route->getUrl($params);
     }
 
 }
